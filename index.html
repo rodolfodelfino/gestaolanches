@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema de Gestão - Lanchonete (Tema Claro) v2.1</title>
+  <style>
+    :root{
+      --bg:#f8fafc; /* slate-50 */
+      --panel:#ffffff; /* white */
+      --muted:#475569; /* slate-600 */
+      --accent:#16a34a; /* green-600 */
+      --accent-2:#0ea5e9; /* sky-500 */
+      --danger:#dc2626; /* red-600 */
+      --warning:#d97706; /* amber-600 */
+      --ok:#10b981; /* emerald-500 */
+      --card:#ffffff; /* panel */
+      --border:#e5e7eb; /* gray-200 */
+      --text:#0f172a; /* slate-900 */
+      --text-soft:#334155; /* slate-700 */
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; color:var(--text)}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#ffffffcc;backdrop-filter:blur(6px);z-index:20}
+    header h1{font-size:20px;margin:0;letter-spacing:.3px;color:var(--text)}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .badge{font-weight:700;padding:6px 10px;border:1px solid var(--border);border-radius:10px;background:#ffffff; color:var(--accent-2)}
+    nav{display:flex;flex-wrap:wrap;gap:8px}
+    nav button{background:#ffffff;border:1px solid var(--border);color:var(--text-soft);padding:8px 12px;border-radius:10px;cursor:pointer}
+    nav button.active{border-color:#2563eb;color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.10) inset}
+    main{max-width:1100px;margin:18px auto;padding:0 16px 90px}
+    .section{display:none}
+    .section.active{display:block}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .card{grid-column:span 12;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(15,23,42,.06)}
+    @media (min-width:900px){
+      .col-6{grid-column:span 6}
+      .col-4{grid-column:span 4}
+      .col-8{grid-column:span 8}
+      .col-5{grid-column:span 5}
+      .col-7{grid-column:span 7}
+      .col-3{grid-column:span 3}
+    }
+    h2{margin:4px 0 12px;font-size:18px;color:var(--text)}
+    h3{margin:6px 0 8px;font-size:15px;color:var(--text-soft)}
+    label{display:block;margin:8px 0 4px;color:var(--text-soft);font-size:14px}
+    input,select,textarea{width:100%;padding:9px 10px;border-radius:10px;border:1px solid var(--border);background:#ffffff;color:var(--text)}
+    input[type="number"]{appearance:textfield}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .row > *{flex:1 1 160px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:#ffffff;color:var(--text);cursor:pointer}
+    .btn:hover{filter:brightness(1.02)}
+    .btn.primary{background:#f1f5f9;border-color:#dbe0e7;color:#1d4ed8}
+    .btn.ok{background:#ecfdf5;border-color:#bbf7d0;color:#166534}
+    .btn.warn{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+    .btn.danger{background:#fef2f2;border-color:#fecaca;color:#7f1d1d}
+    table{width:100%;border-collapse:separate;border-spacing:0 6px}
+    thead th{font-size:13px;color:#64748b;text-align:left;padding:6px 8px}
+    tbody tr{background:#f9fafb;border:1px solid var(--border)}
+    tbody td{padding:10px 8px;border-top:1px solid var(--border);color:var(--text)}
+    tbody tr:first-child td{border-top:none}
+    .tag{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;color:#1e293b;background:#f1f5f9}
+    .muted{color:#64748b}
+    .kpi{display:flex;align-items:flex-end;gap:10px}
+    .kpi strong{font-size:22px}
+    .right{display:flex;justify-content:flex-end;gap:8px}
+    .pill{border:1px solid var(--border);background:#ffffff;border-radius:999px;padding:6px 10px;display:inline-flex;gap:8px;align-items:center}
+    .tiny{font-size:12px;color:#64748b}
+    .hr{height:1px;background:var(--border);margin:10px 0}
+    .help{font-size:12px;color:#64748b}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+    .toast{position:fixed;bottom:16px;right:16px;background:#111827;color:#e5e7eb;border:1px solid #1f2937;padding:10px 14px;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:all .25s ease;z-index:90}
+    .toast.show{opacity:1;transform:translateY(0)}
+    .danger-text{color:#991b1b}
+    .success-text{color:#14532d}
+    .link{color:#2563eb;cursor:pointer;text-decoration:underline}
+    .flex{display:flex;gap:10px;flex-wrap:wrap}
+    .flex-1{flex:1 1 240px}
+    .center{display:flex;align-items:center;justify-content:center}
+    .nowrap{white-space:nowrap}
+    .dim{opacity:.7}
+    .hidden{display:none !important}
+
+    /* Auth (login) */
+    .auth-screen{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#eef2f7,#ffffff); z-index:100}
+    .auth-card{background:#fff; border:1px solid var(--border); border-radius:14px; padding:22px; width:100%; max-width:360px; box-shadow:0 10px 30px rgba(15,23,42,.12)}
+    .auth-card h2{margin:0 0 8px}
+    .auth-card .subtitle{margin:0 0 10px; color:#64748b; font-size:13px}
+
+    /* Footer */
+    footer{border-top:1px solid var(--border);background:#ffffff;padding:16px 22px}
+    footer .footer-content{max-width:1100px;margin:0 auto;color:#64748b;font-size:14px}
+    footer a{color:#1d4ed8;text-decoration:none}
+    footer a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <!-- Tela de Login -->
+  <div id="auth" class="auth-screen">
+    <form class="auth-card" onsubmit="return doLogin(event)">
+      <h2>Entrar</h2>
+      <p class="subtitle">Use as credenciais padrão: <b>usuario</b> / <b>padrao1234</b></p>
+      <label>Usuário</label>
+      <input id="auth-user" autocomplete="username" placeholder="usuario" />
+      <label>Senha</label>
+      <input id="auth-pass" type="password" autocomplete="current-password" placeholder="padrao1234" />
+      <div class="toolbar">
+        <button class="btn ok" type="submit">Acessar</button>
+      </div>
+      <div class="help tiny">*Este login é local (front-end) e não deve ser usado como segurança real em produção.</div>
+    </form>
+  </div>
+
+  <header class="hidden">
+    <div class="brand">
+      <div class="badge">Lanchonete Pro</div>
+      <h1>Sistema de Gestão <span class="muted dim">v2.1</span></h1>
+    </div>
+    <nav id="nav"></nav>
+  </header>
+
+  <main class="hidden">
+    <!-- Dashboard -->
+    <section id="sec-dashboard" class="section active">
+      <div class="grid">
+        <div class="card col-6">
+          <h2>Resumo de Hoje</h2>
+          <div id="dash-today" class="grid">
+            <div class="card col-6">
+              <div class="kpi"><span class="muted">Pedidos</span> <strong id="kpi-pedidos">0</strong></div>
+              <div class="tiny">Total de pedidos concluídos hoje</div>
+            </div>
+            <div class="card col-6">
+              <div class="kpi"><span class="muted">Faturamento</span> <strong id="kpi-faturamento">R$ 0,00</strong></div>
+              <div class="tiny">Inclui taxa de entrega</div>
+            </div>
+            <div class="card col-6">
+              <div class="kpi"><span class="muted">Lucro estimado</span> <strong id="kpi-lucro">R$ 0,00</strong></div>
+              <div class="tiny">Após COGS + taxas variáveis</div>
+            </div>
+            <div class="card col-6">
+              <div class="kpi"><span class="muted">Ticket médio</span> <strong id="kpi-ticket">R$ 0,00</strong></div>
+              <div class="tiny">Faturamento / pedidos</div>
+            </div>
+          </div>
+        </div>
+        <div class="card col-6">
+          <h2>Atalhos</h2>
+          <div class="toolbar">
+            <button class="btn ok" onclick="go('sec-pedidos');">➕ Novo Pedido</button>
+            <button class="btn primary" onclick="go('sec-produtos');">🍔 Cadastrar Produto</button>
+            <button class="btn" onclick="go('sec-ingredientes');">🧂 Cadastrar Ingrediente</button>
+            <button class="btn warn" onclick="go('sec-relatorios');">📊 Ver Relatórios</button>
+          </div>
+          <div class="hr"></div>
+          <div class="help">Dica: defina a <strong>taxa de entrega padrão</strong> e <strong>taxas variáveis</strong> nas <span class="link" onclick="go('sec-config');">Configurações</span>.</div>
+        </div>
+
+        <div class="card col-12">
+          <h2>Vendas recentes</h2>
+          <div class="toolbar">
+            <input id="search-recentes" placeholder="Buscar por cliente, nº pedido ou produto..." oninput="renderRecentes()"/>
+          </div>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr>
+                <th>#</th><th>Data</th><th>Cliente</th><th>Itens</th><th>Subtotal</th><th>Entrega</th><th>Total</th><th>Pagamento</th>
+              </tr></thead>
+              <tbody id="tb-recentes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Custos -->
+    <section id="sec-custos" class="section">
+      <div class="grid">
+        <div class="card col-6">
+          <h2>Custos Fixos (mensal)</h2>
+          <div class="row">
+            <div><label>Descrição</label><input id="fx-desc" placeholder="Aluguel, internet..."/></div>
+            <div><label>Valor</label><input id="fx-valor" type="number" step="0.01" placeholder="0,00"/></div>
+          </div>
+          <div class="toolbar">
+            <button class="btn ok" onclick="addCustoFixo()">Adicionar</button>
+          </div>
+          <div class="hr"></div>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+              <tbody id="tb-fixos"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card col-6">
+          <h2>Custos Variáveis</h2>
+          <label>Taxas sobre venda (%) <span class="muted">(ex.: maquininha, marketplace)</span></label>
+          <input id="var-percent" type="number" step="0.01" placeholder="0" oninput="saveVarPercent()" />
+          <div class="help">Usado nos relatórios e no cálculo de lucro estimado.</div>
+          <div class="hr"></div>
+          <h3>Observação</h3>
+          <div class="help">Os <strong>custos fixos</strong> não são descontados do lucro estimado por pedido, mas aparecem no relatório mensal para rateio gerencial.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Ingredientes -->
+    <section id="sec-ingredientes" class="section">
+      <div class="grid">
+        <div class="card col-4">
+          <h2>Cadastrar / Editar Ingrediente</h2>
+          <label>Nome</label>
+          <input id="ing-nome" placeholder="Pão, Hambúrguer, Queijo, Refrigerante..."/>
+          <label>Tipo de medida</label>
+          <select id="ing-tipo" onchange="onTipoChange()">
+            <option value="g">Gramas (g)</option>
+            <option value="ml">Mililitros (ml)</option>
+            <option value="un">Unidade (un)</option>
+          </select>
+          <label id="lab-custo">Custo por grama (R$)</label>
+          <input id="ing-custo" type="number" step="0.0001" placeholder="Ex.: 0.005 para R$5/kg"/>
+          <div class="help">Dica: para custo por kg, divida por 1000. Ex.: R$ 30/kg → 0,03 por grama.</div>
+          <div class="toolbar">
+            <button id="btn-ing-save" class="btn ok">Salvar Ingrediente</button>
+            <button class="btn" onclick="limparIngForm()">Limpar</button>
+          </div>
+          <div class="help tiny">Editar um ingrediente pode impactar o <b>custo sugerido</b> ao reabrir e salvar um produto.</div>
+        </div>
+        <div class="card col-8">
+          <h2>Ingredientes</h2>
+          <div class="toolbar">
+            <input id="ing-busca" placeholder="Buscar ingrediente..." oninput="renderIngredientes()"/>
+          </div>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Nome</th><th>Tipo</th><th>Custo base</th><th></th></tr></thead>
+              <tbody id="tb-ingredientes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Produtos -->
+    <section id="sec-produtos" class="section">
+      <div class="grid">
+        <div class="card col-5">
+          <h2>Cadastrar / Editar Produto</h2>
+          <label>Categoria</label>
+          <select id="prod-cat">
+            <option value="lanche">Lanche</option>
+            <option value="pastel">Pastel</option>
+            <option value="bebida">Bebida</option>
+          </select>
+          <label>Nome do produto</label>
+          <input id="prod-nome" placeholder="X-Salada, Pastel de Carne, Refrigerante 350ml..."/>
+          <div class="hr"></div>
+          <h3>Composição</h3>
+          <div id="comp-list"></div>
+          <div class="toolbar">
+            <button class="btn" onclick="addCompRow()">+ Ingrediente</button>
+          </div>
+          <label>Outros custos por unidade (embalagem, gás etc.)</label>
+          <input id="prod-outros" type="number" step="0.01" value="0"/>
+          <label>Margem de lucro desejada (%)</label>
+          <input id="prod-margem" type="number" step="0.1" value="60"/>
+          <div class="hr"></div>
+
+          <label><input type="checkbox" id="prod-preco-manual-check" onchange="togglePrecoManual()"> Definir preço manual</label>
+          <input id="prod-preco-manual" type="number" step="0.01" placeholder="Preço manual" disabled/>
+
+          <div class="row">
+            <div>
+              <div class="muted tiny">Custo calculado</div>
+              <div id="prod-custo" class="kpi"><strong>R$ 0,00</strong></div>
+            </div>
+            <div>
+              <div class="muted tiny">Preço sugerido</div>
+              <div id="prod-preco" class="kpi"><strong>R$ 0,00</strong></div>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button class="btn ok" onclick="salvarProduto()">Salvar Produto</button>
+            <button class="btn" onclick="limparProdutoForm()">Limpar</button>
+          </div>
+          <div class="help">O <strong>custo</strong> do produto é salvo no momento do salvamento. Se marcar preço manual, ele será usado nos pedidos.</div>
+        </div>
+        <div class="card col-7">
+          <h2>Produtos</h2>
+          <div class="toolbar">
+            <select id="filtro-cat" onchange="renderProdutos()">
+              <option value="">Todas categorias</option>
+              <option value="lanche">Lanches</option>
+              <option value="pastel">Pastéis</option>
+              <option value="bebida">Bebidas</option>
+            </select>
+            <input id="prod-busca" placeholder="Buscar por nome..." oninput="renderProdutos()"/>
+          </div>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Categoria</th><th>Produto</th><th>COGS</th><th>Preço</th><th></th></tr></thead>
+              <tbody id="tb-produtos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Clientes -->
+    <section id="sec-clientes" class="section">
+      <div class="grid">
+        <div class="card col-4">
+          <h2>Cadastrar Cliente</h2>
+          <label>Nome</label><input id="cli-nome"/>
+          <label>Telefone (WhatsApp)</label><input id="cli-tel" placeholder="(14) 9xxxx-xxxx"/>
+          <label>Endereço</label><input id="cli-end"/>
+          <label>Observações</label><textarea id="cli-obs" rows="3"></textarea>
+          <label><input id="cli-ja" type="checkbox"/> Já comprou</label>
+          <div class="toolbar">
+            <button class="btn ok" onclick="salvarCliente()">Salvar Cliente</button>
+            <button class="btn" onclick="limparClienteForm()">Limpar</button>
+          </div>
+        </div>
+        <div class="card col-8">
+          <h2>Clientes</h2>
+          <div class="toolbar">
+            <input id="cli-busca" placeholder="Buscar cliente..." oninput="renderClientes()"/>
+          </div>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Nome</th><th>Telefone</th><th>Endereço</th><th>Últ. compra</th><th></th></tr></thead>
+              <tbody id="tb-clientes"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pedidos -->
+    <section id="sec-pedidos" class="section">
+      <div class="grid">
+        <div class="card col-8">
+          <div class="flex">
+            <h2 class="flex-1">Novo Pedido</h2>
+            <div class="pill">Próximo nº: <strong id="next-n"></strong></div>
+          </div>
+          <label>Cliente</label>
+          <div class="row">
+            <select id="ped-cliente"></select>
+            <input id="ped-cli-nome" placeholder="Ou digite um novo nome"/>
+          </div>
+          <div class="hr"></div>
+          <h3>Itens</h3>
+          <div class="row">
+            <select id="ped-cat" onchange="updateProdSelect()">
+              <option value="">Todas categorias</option>
+              <option value="lanche">Lanches</option>
+              <option value="pastel">Pastéis</option>
+              <option value="bebida">Bebidas</option>
+            </select>
+            <select id="ped-prod"></select>
+            <input id="ped-qtd" type="number" step="1" min="1" value="1"/>
+            <input id="ped-preco" type="number" step="0.01" placeholder="Preço unitário"/>
+            <button class="btn" onclick="addItemPedido()">Adicionar</button>
+          </div>
+          <div class="help">O preço padrão vem do cadastro (manual ou sugerido), mas você pode ajustar para promoções.</div>
+          <div style="overflow:auto;margin-top:8px">
+            <table>
+              <thead><tr><th>Produto</th><th>Qtd</th><th>Preço un.</th><th>Subtotal</th><th></th></tr></thead>
+              <tbody id="tb-itens"></tbody>
+            </table>
+          </div>
+          <div class="hr"></div>
+          <div class="row">
+            <div>
+              <label>Taxa de entrega (R$)</label>
+              <input id="ped-entrega" type="number" step="0.01"/>
+            </div>
+            <div>
+              <label>Forma de pagamento</label>
+              <select id="ped-pag">
+                <option>Dinheiro</option>
+                <option>PIX</option>
+                <option>Cartão</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label>Observações</label>
+              <input id="ped-obs" placeholder="Sem cebola, ponto da carne, troco, etc..."/>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="row">
+            <div class="kpi"><span class="muted">Subtotal</span> <strong id="sum-sub">R$ 0,00</strong></div>
+            <div class="kpi"><span class="muted">Entrega</span> <strong id="sum-ent">R$ 0,00</strong></div>
+            <div class="kpi"><span class="muted">Total</span> <strong id="sum-tot">R$ 0,00</strong></div>
+          </div>
+          <div class="toolbar">
+            <button class="btn ok" onclick="salvarPedido()">Salvar Pedido</button>
+            <button class="btn" onclick="novoPedidoForm(true)">Limpar</button>
+            <button class="btn primary" onclick="whatsPreview()">Compartilhar no WhatsApp</button>
+          </div>
+        </div>
+        <div class="card col-4">
+          <h2>Pedidos Salvos</h2>
+          <div class="toolbar">
+            <input id="ped-busca" placeholder="Buscar por cliente ou nº..." oninput="renderPedidosLista()"/>
+          </div>
+          <div style="max-height:520px;overflow:auto">
+            <table>
+              <thead><tr><th>#</th><th>Data</th><th>Cliente</th><th>Total</th><th></th></tr></thead>
+              <tbody id="tb-pedidos"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Relatórios -->
+    <section id="sec-relatorios" class="section">
+      <div class="grid">
+        <div class="card col-12">
+          <h2>Relatórios de Vendas</h2>
+          <div class="row">
+            <div>
+              <label>Início</label>
+              <input id="rep-inicio" type="date"/>
+            </div>
+            <div>
+              <label>Fim</label>
+              <input id="rep-fim" type="date"/>
+            </div>
+            <div>
+              <label>Categoria</label>
+              <select id="rep-cat">
+                <option value="">Todas</option>
+                <option value="lanche">Lanches</option>
+                <option value="pastel">Pastéis</option>
+                <option value="bebida">Bebidas</option>
+              </select>
+            </div>
+            <div>
+              <label>Incluir entrega no faturamento?</label>
+              <select id="rep-inc-entrega">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+              </select>
+            </div>
+            <div class="right" style="align-items:flex-end">
+              <button class="btn ok" onclick="gerarRelatorio()">Gerar</button>
+              <button class="btn" onclick="exportCSV()">Exportar CSV</button>
+            </div>
+          </div>
+          <div class="hr"></div>
+          <div class="grid" id="rep-kpis">
+            <div class="card col-3"><div class="muted tiny">Pedidos</div><div id="rk-ped" class="kpi"><strong>0</strong></div></div>
+            <div class="card col-3"><div class="muted tiny">Faturamento</div><div id="rk-fat" class="kpi"><strong>R$ 0,00</strong></div></div>
+            <div class="card col-3"><div class="muted tiny">COGS</div><div id="rk-cogs" class="kpi"><strong>R$ 0,00</strong></div></div>
+            <div class="card col-3"><div class="muted tiny">Taxas Var.</div><div id="rk-taxas" class="kpi"><strong>R$ 0,00</strong></div></div>
+            <div class="card col-3"><div class="muted tiny">Lucro Est.</div><div id="rk-lucro" class="kpi"><strong>R$ 0,00</strong></div></div>
+            <div class="card col-3"><div class="muted tiny">Ticket Médio</div><div id="rk-ticket" class="kpi"><strong>R$ 0,00</strong></div></div>
+          </div>
+          <div class="hr"></div>
+          <h3>Vendas por Produto</h3>
+          <div style="overflow:auto">
+            <table>
+              <thead><tr><th>Produto</th><th>Categoria</th><th>Qtd</th><th>Receita</th><th>COGS</th><th>Lucro Est.</th></tr></thead>
+              <tbody id="tb-rep-prod"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="hidden">
+    <div class="footer-content">
+      © <span id="year"></span> Lanchonete Pro — Todos os direitos reservados.
+      Contato WhatsApp: <a href="https://wa.me/5514997225445" target="_blank" rel="noopener">(14) 99722-5445</a>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // ---------- Utilidades ----------
+    const BRL = new Intl.NumberFormat('pt-BR', {style:'currency', currency:'BRL'});
+    const fmt = (v)=> BRL.format(Number(v||0));
+    const parseNum = (v)=> {
+      if (typeof v === 'number') return v;
+      if (!v) return 0;
+      return parseFloat(String(v).replace(/\./g,'').replace(',','.')) || parseFloat(v) || 0;
+    };
+    const uid = ()=> Math.random().toString(36).slice(2,9);
+    const todayISO = ()=> new Date().toISOString();
+    const ymd = (d)=> new Date(d).toISOString().slice(0,10);
+    const toast = (msg, kind='')=>{ const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast show'; if(kind==='ok'){t.classList.add('success-text')} if(kind==='err'){t.classList.add('danger-text')} setTimeout(()=>{t.className='toast'},2200)}
+
+    // ---------- Auth (local, simples) ----------
+    const AUTH_KEY = 'lanchonete_auth_v1';
+    const DEFAULT_USER = 'usuario';
+    const DEFAULT_PASS = 'padrao1234';
+
+    function checkAuth(){
+      const ok = localStorage.getItem(AUTH_KEY)==='ok';
+      document.getElementById('auth').classList.toggle('hidden', ok);
+      document.querySelector('header').classList.toggle('hidden', !ok);
+      document.querySelector('main').classList.toggle('hidden', !ok);
+      document.querySelector('footer').classList.toggle('hidden', !ok);
+    }
+    function doLogin(ev){
+      ev.preventDefault();
+      const u = document.getElementById('auth-user').value.trim();
+      const p = document.getElementById('auth-pass').value;
+      if(u===DEFAULT_USER && p===DEFAULT_PASS){
+        localStorage.setItem(AUTH_KEY,'ok');
+        checkAuth();
+        toast('Bem-vindo!', 'ok');
+      }else{
+        toast('Usuário ou senha incorretos','err');
+      }
+      return false;
+    }
+    function logout(){
+      localStorage.removeItem(AUTH_KEY);
+      checkAuth();
+    }
+
+    // ---------- DataStore (localStorage) ----------
+    const LS_KEY = 'lanchonete_data_v2';
+    const Data = {
+      load(){
+        const raw = localStorage.getItem(LS_KEY);
+        if(raw){ try { return JSON.parse(raw) } catch(e){ console.error(e) } }
+        // migrar v1 se existir
+        const old = localStorage.getItem('lanchonete_data_v1');
+        if(old){
+          try{
+            const v1 = JSON.parse(old);
+            v1.products = (v1.products||[]).map(p=> ({...p, priceManual: p.priceManual ?? null}));
+            localStorage.setItem(LS_KEY, JSON.stringify(v1));
+            return v1;
+          }catch(e){}
+        }
+        return { settings:{deliveryFeeDefault:0, variableCostPercent:0, lastOrderNumber:0}, fixedCosts:[], ingredients:[], products:[], customers:[], orders:[] };
+      },
+      save(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)) },
+      get(){ if(!this.cache) this.cache = this.load(); return this.cache },
+      commit(){ this.save(this.cache) }
+    };
+
+    // ---------- Navegação ----------
+    const tabs = [
+      {id:'sec-dashboard', label:'Dashboard'},
+      {id:'sec-custos', label:'Custos'},
+      {id:'sec-ingredientes', label:'Ingredientes'},
+      {id:'sec-produtos', label:'Produtos'},
+      {id:'sec-clientes', label:'Clientes'},
+      {id:'sec-pedidos', label:'Pedidos'},
+      {id:'sec-relatorios', label:'Relatórios'},
+      {id:'sec-config', label:'Configurações'},
+    ];
+    function buildNav(){
+      const nav = document.getElementById('nav');
+      nav.innerHTML = '';
+      tabs.forEach((t,i)=>{
+        const b = document.createElement('button'); b.textContent = t.label; b.onclick = ()=> go(t.id); b.id = 'tab-'+t.id; if(i===0) b.classList.add('active'); nav.appendChild(b);
+      });
+      const out = document.createElement('button'); out.textContent = 'Sair'; out.onclick = logout; nav.appendChild(out);
+    }
+    function go(id){
+      document.querySelectorAll('.section').forEach(s=> s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.querySelectorAll('nav button').forEach(b=> b.classList.remove('active'));
+      const t = document.getElementById('tab-'+id); if (t) t.classList.add('active');
+      if(id==='sec-dashboard') renderDashboard();
+      if(id==='sec-ingredientes') renderIngredientes();
+      if(id==='sec-produtos') { renderProdutos(); calcularProduto(); }
+      if(id==='sec-clientes') renderClientes();
+      if(id==='sec-pedidos') { novoPedidoForm(); renderPedidosLista(); }
+      if(id==='sec-relatorios') defaultRelatorioDatas();
+      if(id==='sec-custos') { renderFixos(); document.getElementById('var-percent').value = Data.get().settings.variableCostPercent }
+      if(id==='sec-config') { renderConfig(); }
+    }
+
+    // ---------- Custos Fixos / Variáveis ----------
+    function addCustoFixo(){
+      const desc = document.getElementById('fx-desc').value.trim();
+      const val = parseNum(document.getElementById('fx-valor').value);
+      if(!desc || val<=0){ toast('Informe descrição e valor (>0)', 'err'); return }
+      const d = Data.get();
+      d.fixedCosts.push({id:uid(), desc, value: val});
+      Data.commit();
+      document.getElementById('fx-desc').value='';
+      document.getElementById('fx-valor').value='';
+      renderFixos(); toast('Custo fixo adicionado','ok');
+    }
+    function delCustoFixo(id){
+      const d = Data.get(); d.fixedCosts = d.fixedCosts.filter(x=>x.id!==id); Data.commit(); renderFixos();
+    }
+    function renderFixos(){
+      const tb = document.getElementById('tb-fixos'); tb.innerHTML='';
+      const d = Data.get();
+      d.fixedCosts.forEach(c=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${c.desc}</td><td>${fmt(c.value)}</td><td class="right"><button class="btn danger" onclick="delCustoFixo('${c.id}')">Excluir</button></td>`;
+        tb.appendChild(tr);
+      })
+    }
+    function saveVarPercent(){
+      const p = parseNum(document.getElementById('var-percent').value);
+      const d = Data.get(); d.settings.variableCostPercent = p; Data.commit(); toast('Taxa variável salva','ok');
+    }
+
+    // ---------- Ingredientes (CRUD com edição) ----------
+    function onTipoChange(){
+      const tipo = document.getElementById('ing-tipo').value;
+      document.getElementById('lab-custo').textContent = tipo==='g'? 'Custo por grama (R$)' : tipo==='ml'? 'Custo por ml (R$)' : 'Custo por unidade (R$)';
+    }
+    function bindIngSaveDefault(){
+      const btn = document.getElementById('btn-ing-save');
+      btn.textContent = 'Salvar Ingrediente';
+      btn.onclick = addIngrediente;
+    }
+    function addIngrediente(){
+      const nome = document.getElementById('ing-nome').value.trim();
+      const tipo = document.getElementById('ing-tipo').value;
+      const custo = parseNum(document.getElementById('ing-custo').value);
+      if(!nome || custo<=0){ toast('Preencha nome e custo (>0)', 'err'); return }
+      const d = Data.get();
+      d.ingredients.push({id:uid(), name:nome, tipo, custo});
+      Data.commit();
+      limparIngForm(); renderIngredientes(); toast('Ingrediente salvo','ok');
+    }
+    function editarIngrediente(id){
+      const d = Data.get();
+      const i = d.ingredients.find(x=> x.id===id); if(!i) return;
+      document.getElementById('ing-nome').value = i.name;
+      document.getElementById('ing-tipo').value = i.tipo;
+      document.getElementById('ing-custo').value = i.custo;
+      onTipoChange();
+      const btn = document.getElementById('btn-ing-save');
+      btn.textContent = 'Atualizar Ingrediente';
+      btn.onclick = ()=> atualizarIngrediente(id);
+    }
+    function atualizarIngrediente(id){
+      const d = Data.get();
+      const i = d.ingredients.find(x=> x.id===id); if(!i) return;
+      const nome = document.getElementById('ing-nome').value.trim();
+      const tipo = document.getElementById('ing-tipo').value;
+      const custo = parseNum(document.getElementById('ing-custo').value);
+      if(!nome || custo<=0){ toast('Preencha nome e custo (>0)', 'err'); return }
+      Object.assign(i, {name:nome, tipo, custo});
+      Data.commit();
+      limparIngForm(); renderIngredientes(); toast('Ingrediente atualizado','ok');
+    }
+    function limparIngForm(){
+      document.getElementById('ing-nome').value='';
+      document.getElementById('ing-tipo').value='g';
+      document.getElementById('ing-custo').value='';
+      onTipoChange();
+      bindIngSaveDefault();
+    }
+    function delIngrediente(id){
+      const d = Data.get(); d.ingredients = d.ingredients.filter(i=>i.id!==id); Data.commit(); renderIngredientes();
+    }
+    function renderIngredientes(){
+      const d = Data.get();
+      const q = (document.getElementById('ing-busca')?.value||'').toLowerCase();
+      const tb = document.getElementById('tb-ingredientes'); tb.innerHTML='';
+      d.ingredients.filter(i=> i.name.toLowerCase().includes(q)).forEach(i=>{
+        const tr = document.createElement('tr');
+        const base = i.tipo==='g'? 'g' : i.tipo==='ml'? 'ml' : 'un';
+        tr.innerHTML = `<td>${i.name}</td><td>${base}</td><td>${fmt(i.custo)} / ${base}</td>
+          <td class="right">
+            <button class="btn" onclick="editarIngrediente('${i.id}')">Editar</button>
+            <button class="btn danger" onclick="delIngrediente('${i.id}')">Excluir</button>
+          </td>`;
+        tb.appendChild(tr);
+      })
+      refreshCompIngredientOptions(); updateProdSelect();
+    }
+
+    // ---------- Produtos ----------
+    function addCompRow(pref){
+      const wrap = document.createElement('div');
+      wrap.className = 'row';
+      wrap.innerHTML = `
+        <select class="comp-ing"></select>
+        <input class="comp-qtd" type="number" step="0.01" min="0" placeholder="Qtd (g/ml/un)"/>
+        <button class="btn danger" type="button" onclick="this.parentElement.remove(); calcularProduto();">Remover</button>
+      `;
+      document.getElementById('comp-list').appendChild(wrap);
+      refreshCompIngredientOptions();
+      if(pref){
+        wrap.querySelector('.comp-ing').value = pref.ingId || '';
+        wrap.querySelector('.comp-qtd').value = pref.qtd || '';
+      }
+    }
+    function refreshCompIngredientOptions(){
+      const d = Data.get();
+      document.querySelectorAll('select.comp-ing').forEach(sel=>{
+        const prev = sel.value; sel.innerHTML = '<option value="">Selecione o ingrediente</option>' + d.ingredients.map(i=> `<option value="${i.id}">${i.name} (${i.tipo})</option>`).join('');
+        if(prev) sel.value = prev;
+      })
+    }
+    function compEntries(){
+      return Array.from(document.querySelectorAll('#comp-list .row'))
+        .map(row=>({ ingId: row.querySelector('.comp-ing').value, qtd: parseNum(row.querySelector('.comp-qtd').value) }))
+        .filter(x=> x.ingId && x.qtd>0);
+    }
+    function calcularProduto(){
+      const d = Data.get();
+      const comp = compEntries();
+      let custo = 0;
+      comp.forEach(c=>{
+        const ing = d.ingredients.find(i=> i.id===c.ingId);
+        if(ing){ custo += ing.custo * c.qtd; }
+      });
+      const outros = parseNum(document.getElementById('prod-outros').value);
+      custo += outros;
+      const margem = parseNum(document.getElementById('prod-margem').value);
+      const precoSugerido = custo * (1 + margem/100);
+      document.getElementById('prod-custo').querySelector('strong').textContent = fmt(custo);
+      document.getElementById('prod-preco').querySelector('strong').textContent = fmt(precoSugerido);
+      return {custo, precoSugerido};
+    }
+    function togglePrecoManual(){
+      const check = document.getElementById('prod-preco-manual-check');
+      const inp = document.getElementById('prod-preco-manual');
+      inp.disabled = !check.checked;
+    }
+    function salvarProduto(editId){
+      const nome = document.getElementById('prod-nome').value.trim();
+      const cat = document.getElementById('prod-cat').value;
+      const comp = compEntries();
+      const outros = parseNum(document.getElementById('prod-outros').value);
+      const margem = parseNum(document.getElementById('prod-margem').value);
+      const manualOn = document.getElementById('prod-preco-manual-check').checked;
+      const manualVal = parseNum(document.getElementById('prod-preco-manual').value);
+
+      if(!nome || !cat || comp.length===0){ toast('Informe nome, categoria e pelo menos um ingrediente','err'); return }
+      const {custo, precoSugerido} = calcularProduto();
+      const finalPrice = (manualOn && manualVal>0)? manualVal : precoSugerido;
+      const priceManual = (manualOn && manualVal>0)? manualVal : null;
+
+      const d = Data.get();
+      if(editId){
+        const p = d.products.find(x=> x.id===editId);
+        if(!p) return;
+        Object.assign(p,{ name:nome, category:cat, composition:comp, extraCost:outros, margin:margem, cost:custo, price:finalPrice, priceManual });
+      }else{
+        d.products.push({ id:uid(), name:nome, category:cat, composition:comp, extraCost:outros, margin:margem, cost:custo, price:finalPrice, priceManual });
+      }
+      Data.commit();
+      limparProdutoForm(); renderProdutos(); toast('Produto salvo','ok');
+    }
+    function editarProduto(id){
+      const d = Data.get(); const p = d.products.find(x=>x.id===id); if(!p) return;
+      document.getElementById('prod-cat').value = p.category;
+      document.getElementById('prod-nome').value = p.name;
+      document.getElementById('prod-outros').value = p.extraCost ?? 0;
+      document.getElementById('prod-margem').value = p.margin ?? 60;
+      document.getElementById('comp-list').innerHTML='';
+      (p.composition||[]).forEach(c=> addCompRow({ingId:c.ingId, qtd:c.qtd}));
+      calcularProduto();
+      const hasManual = p.priceManual && p.priceManual>0;
+      document.getElementById('prod-preco-manual-check').checked = !!hasManual;
+      togglePrecoManual();
+      document.getElementById('prod-preco-manual').value = hasManual? p.priceManual : '';
+      const btns = document.querySelectorAll('#sec-produtos .btn.ok');
+      btns.forEach(b=>{ b.textContent = 'Atualizar Produto'; b.onclick = ()=> salvarProduto(id); });
+    }
+    function limparProdutoForm(){
+      document.getElementById('prod-cat').value='lanche';
+      document.getElementById('prod-nome').value='';
+      document.getElementById('prod-outros').value='0';
+      document.getElementById('prod-margem').value='60';
+      document.getElementById('comp-list').innerHTML='';
+      document.getElementById('prod-custo').querySelector('strong').textContent = fmt(0);
+      document.getElementById('prod-preco').querySelector('strong').textContent = fmt(0);
+      document.getElementById('prod-preco-manual-check').checked = false;
+      document.getElementById('prod-preco-manual').value = '';
+      togglePrecoManual();
+      addCompRow();
+      const btns = document.querySelectorAll('#sec-produtos .btn.ok');
+      btns.forEach(b=>{ b.textContent = 'Salvar Produto'; b.onclick = ()=> salvarProduto(); });
+    }
+    function delProduto(id){
+      const d = Data.get(); d.products = d.products.filter(p=>p.id!==id); Data.commit(); renderProdutos();
+    }
+    function renderProdutos(){
+      const d = Data.get();
+      const cat = document.getElementById('filtro-cat').value;
+      const q = (document.getElementById('prod-busca')?.value||'').toLowerCase();
+      const tb = document.getElementById('tb-produtos'); tb.innerHTML='';
+      d.products.filter(p=>(!cat||p.category===cat) && p.name.toLowerCase().includes(q)).forEach(p=>{
+        const manualTag = p.priceManual && p.priceManual>0 ? ' <span class="tag">manual</span>' : '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><span class="tag">${p.category}</span></td>
+                        <td>${p.name}</td>
+                        <td>${fmt(p.cost||0)}</td>
+                        <td><strong>${fmt(p.price||0)}</strong>${manualTag}</td>
+                        <td class="right">
+                          <button class="btn" onclick="editarProduto('${p.id}')">Editar</button>
+                          <button class="btn danger" onclick="delProduto('${p.id}')">Excluir</button>
+                        </td>`;
+        tb.appendChild(tr);
+      })
+      updateProdSelect();
+    }
+
+    // ---------- Clientes ----------
+    function salvarCliente(){
+      const nome = document.getElementById('cli-nome').value.trim();
+      if(!nome){ toast('Informe o nome do cliente','err'); return }
+      const tel = document.getElementById('cli-tel').value.trim();
+      const end = document.getElementById('cli-end').value.trim();
+      const obs = document.getElementById('cli-obs').value.trim();
+      const ja = document.getElementById('cli-ja').checked;
+      const d = Data.get(); d.customers.push({id:uid(), name:nome, phone:tel, address:end, notes:obs, ja}); Data.commit();
+      limparClienteForm(); renderClientes(); toast('Cliente salvo','ok');
+    }
+    function limparClienteForm(){
+      document.getElementById('cli-nome').value='';
+      document.getElementById('cli-tel').value='';
+      document.getElementById('cli-end').value='';
+      document.getElementById('cli-obs').value='';
+      document.getElementById('cli-ja').checked=false;
+    }
+    function delCliente(id){ const d = Data.get(); d.customers = d.customers.filter(c=>c.id!==id); Data.commit(); renderClientes(); }
+    function renderClientes(){
+      const d = Data.get();
+      const q = (document.getElementById('cli-busca')?.value||'').toLowerCase();
+      const tb = document.getElementById('tb-clientes'); tb.innerHTML='';
+      d.customers.filter(c=> c.name.toLowerCase().includes(q)).forEach(c=>{
+        const ords = d.orders.filter(o=> o.customerId===c.id).sort((a,b)=> new Date(b.datetimeISO)-new Date(a.datetimeISO));
+        const ult = ords[0]?.datetimeISO ? new Date(ords[0].datetimeISO).toLocaleString('pt-BR') : '-';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${c.name}</td><td>${c.phone||'-'}</td><td>${c.address||'-'}</td><td>${ult}</td>
+                        <td class="right"><button class="btn danger" onclick="delCliente('${c.id}')">Excluir</button></td>`;
+        tb.appendChild(tr);
+      })
+      const sel = document.getElementById('ped-cliente'); if(sel){ sel.innerHTML = '<option value="">Selecione um cliente</option>' + d.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('') }
+    }
+
+    // ---------- Pedidos ----------
+    function nextOrderNumber(){ const d=Data.get(); return (d.settings.lastOrderNumber||0)+1 }
+    function novoPedidoForm(clearOnly=false){
+      document.getElementById('next-n').textContent = nextOrderNumber();
+      const d = Data.get();
+      renderClientes(); updateProdSelect();
+      document.getElementById('ped-qtd').value=1;
+      document.getElementById('ped-preco').value='';
+      document.getElementById('ped-obs').value='';
+      document.getElementById('ped-pag').value='Dinheiro';
+      document.getElementById('ped-entrega').value = d.settings.deliveryFeeDefault||0;
+      document.getElementById('tb-itens').innerHTML='';
+      updateSums();
+      if(!clearOnly){
+        document.getElementById('ped-cliente').value='';
+        document.getElementById('ped-cli-nome').value='';
+      }
+    }
+    function updateProdSelect(){
+      const cat = document.getElementById('ped-cat')?.value || '';
+      const sel = document.getElementById('ped-prod'); if(!sel) return;
+      const d = Data.get();
+      const list = d.products.filter(p=> !cat || p.category===cat);
+      sel.innerHTML = list.map(p=>`<option value="${p.id}">${p.name} — ${fmt(p.price||0)}</option>`).join('');
+      if(list[0]){
+        document.getElementById('ped-preco').value = (list[0].price||0).toFixed(2);
+      } else {
+        document.getElementById('ped-preco').value = '';
+      }
+    }
+    function addItemPedido(){
+      const d = Data.get();
+      const prodId = document.getElementById('ped-prod').value;
+      const qtd = parseInt(document.getElementById('ped-qtd').value||'1');
+      const preco = parseNum(document.getElementById('ped-preco').value);
+      if(!prodId || qtd<=0 || preco<=0){ toast('Selecione produto e informe quantidade e preço (>0)','err'); return }
+      const p = d.products.find(x=> x.id===prodId); if(!p){ toast('Produto inválido','err'); return }
+      const tr = document.createElement('tr');
+      const sub = qtd*preco;
+      tr.innerHTML = `<td>${p.name}</td><td>${qtd}</td><td>${fmt(preco)}</td><td><strong>${fmt(sub)}</strong></td>
+                      <td class="right"><button class="btn danger" onclick="this.closest('tr').remove(); updateSums();">Remover</button></td>`;
+      tr.dataset.payload = JSON.stringify({productId:p.id, name:p.name, qty:qtd, unitPrice:preco, unitCost:p.cost});
+      document.getElementById('tb-itens').appendChild(tr);
+      updateSums();
+    }
+    function itemsFromTable(){
+      return Array.from(document.querySelectorAll('#tb-itens tr')).map(tr=> JSON.parse(tr.dataset.payload));
+    }
+    function updateSums(){
+      const itens = itemsFromTable();
+      const sub = itens.reduce((s,it)=> s + it.qty*it.unitPrice, 0);
+      const ent = parseNum(document.getElementById('ped-entrega').value);
+      document.getElementById('sum-sub').textContent = fmt(sub);
+      document.getElementById('sum-ent').textContent = fmt(ent);
+      document.getElementById('sum-tot').textContent = fmt(sub+ent);
+    }
+    document.getElementById('ped-entrega')?.addEventListener('input', updateSums);
+
+    function salvarPedido(){
+      const d = Data.get();
+      const itens = itemsFromTable();
+      if(itens.length===0){ toast('Adicione pelo menos um item','err'); return }
+      const cliSel = document.getElementById('ped-cliente').value;
+      let clienteId = cliSel||''; let clienteNome='';
+      if(!clienteId){
+        clienteNome = document.getElementById('ped-cli-nome').value.trim();
+        if(!clienteNome){ toast('Selecione um cliente ou digite o nome','err'); return }
+        const novo = {id:uid(), name:clienteNome, phone:'', address:'', notes:'', ja:true};
+        d.customers.push(novo); clienteId = novo.id;
+      } else {
+        clienteNome = d.customers.find(c=>c.id===clienteId)?.name || '';
+      }
+      const entrega = parseNum(document.getElementById('ped-entrega').value);
+      const subtotal = itens.reduce((s,it)=> s + it.qty*it.unitPrice, 0);
+      const total = subtotal + entrega;
+      const num = nextOrderNumber();
+      const pedido = { id:num, datetimeISO: todayISO(), customerId:clienteId, customerName:clienteNome, items:itens, subtotal, deliveryFee:entrega, total, paymentMethod: document.getElementById('ped-pag').value, observations: document.getElementById('ped-obs').value.trim() };
+      d.orders.push(pedido);
+      d.settings.lastOrderNumber = num;
+      Data.commit();
+      toast(`Pedido #${num} salvo!`, 'ok');
+      novoPedidoForm(); renderPedidosLista(); renderDashboard();
+    }
+    function delPedido(id){ const d = Data.get(); d.orders = d.orders.filter(o=> o.id!==id); Data.commit(); renderPedidosLista(); renderDashboard(); }
+    function renderPedidosLista(){
+      const d = Data.get();
+      const q = (document.getElementById('ped-busca')?.value||'').toLowerCase();
+      const tb = document.getElementById('tb-pedidos'); tb.innerHTML='';
+      d.orders.slice().sort((a,b)=> new Date(b.datetimeISO)-new Date(a.datetimeISO)).filter(o=>
+        o.customerName.toLowerCase().includes(q) || String(o.id).includes(q)
+      ).forEach(o=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td class="nowrap">#${o.id}</td><td class="nowrap">${new Date(o.datetimeISO).toLocaleString('pt-BR')}</td><td>${o.customerName}</td><td><strong>${fmt(o.total)}</strong></td>
+                        <td class="right"><button class="btn danger" onclick="delPedido(${o.id})">Excluir</button></td>`;
+        tb.appendChild(tr);
+      })
+      document.getElementById('next-n').textContent = nextOrderNumber();
+    }
+    function whatsPreview(){
+      const itens = itemsFromTable(); if(itens.length===0){ toast('Adicione itens para compartilhar','err'); return }
+      const entrega = parseNum(document.getElementById('ped-entrega').value);
+      const sub = itens.reduce((s,it)=> s + it.qty*it.unitPrice, 0);
+      const tot = sub + entrega;
+      let txt = `*Pedido Lanchonete*\n`;
+      txt += itens.map(it=> `• ${it.qty}x ${it.name} — ${fmt(it.unitPrice)} = ${fmt(it.qty*it.unitPrice)}`).join('\n');
+      if(entrega>0) txt += `\nEntrega: ${fmt(entrega)}`;
+      txt += `\n*Total*: ${fmt(tot)}`;
+      const url = 'https://wa.me/?text=' + encodeURIComponent(txt);
+      window.open(url,'_blank');
+    }
+
+    // ---------- Dashboard ----------
+    function renderDashboard(){
+      const d = Data.get();
+      const today = new Date(); const ymdToday = ymd(today);
+      const todayOrders = d.orders.filter(o=> ymd(o.datetimeISO)===ymdToday);
+      const pedidos = todayOrders.length;
+      const faturamento = todayOrders.reduce((s,o)=> s+o.total,0);
+      const cogs = todayOrders.reduce((s,o)=> s + o.items.reduce((x,it)=> x + it.unitCost*it.qty, 0), 0);
+      const taxasPerc = d.settings.variableCostPercent||0;
+      const taxas = (faturamento)*(taxasPerc/100);
+      const lucro = faturamento - cogs - taxas;
+      const ticket = pedidos ? faturamento/pedidos : 0;
+      document.getElementById('kpi-pedidos').textContent = pedidos;
+      document.getElementById('kpi-faturamento').textContent = fmt(faturamento);
+      document.getElementById('kpi-lucro').textContent = fmt(lucro);
+      document.getElementById('kpi-ticket').textContent = fmt(ticket);
+      renderRecentes();
+    }
+    function renderRecentes(){
+      const d = Data.get();
+      const q = (document.getElementById('search-recentes')?.value||'').toLowerCase();
+      const tb = document.getElementById('tb-recentes'); tb.innerHTML='';
+      d.orders.slice().sort((a,b)=> new Date(b.datetimeISO)-new Date(a.datetimeISO)).filter(o=> {
+        const itensTxt = o.items.map(i=> i.name).join(' ').toLowerCase();
+        return String(o.id).includes(q) || o.customerName.toLowerCase().includes(q) || itensTxt.includes(q);
+      }).slice(0,10).forEach(o=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>#${o.id}</td><td>${new Date(o.datetimeISO).toLocaleString('pt-BR')}</td><td>${o.customerName}</td><td>${o.items.map(i=> i.qty+'x '+i.name).join(', ')}</td><td>${fmt(o.subtotal)}</td><td>${fmt(o.deliveryFee)}</td><td><strong>${fmt(o.total)}</strong></td><td>${o.paymentMethod}</td>`;
+        tb.appendChild(tr);
+      })
+    }
+
+    // ---------- Relatórios ----------
+    function defaultRelatorioDatas(){
+      const ini = document.getElementById('rep-inicio');
+      const fim = document.getElementById('rep-fim');
+      const now = new Date(); const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      ini.value = ymd(first); fim.value = ymd(now);
+    }
+    function gerarRelatorio(){
+      const d = Data.get();
+      const ini = new Date(document.getElementById('rep-inicio').value);
+      const fim = new Date(document.getElementById('rep-fim').value);
+      fim.setHours(23,59,59,999);
+      const cat = document.getElementById('rep-cat').value;
+      const incEnt = document.getElementById('rep-inc-entrega').value==='sim';
+      const inRange = (o)=> new Date(o.datetimeISO)>=ini && new Date(o.datetimeISO)<=fim;
+      const orders = d.orders.filter(inRange);
+
+      let pedidos = 0, faturamento = 0, cogs=0; const byProd = new Map();
+      orders.forEach(o=>{
+        pedidos++;
+        faturamento += o.subtotal + (incEnt? o.deliveryFee: 0);
+        o.items.forEach(it=>{
+          const p = d.products.find(x=> x.id===it.productId);
+          const categoria = p?.category || '-';
+          const key = it.productId+'|'+it.name+'|'+categoria;
+          const reg = byProd.get(key) || {name:it.name, cat:categoria, qtd:0, receita:0, cogs:0};
+          reg.qtd += it.qty;
+          reg.receita += it.qty*it.unitPrice;
+          reg.cogs += it.qty*it.unitCost;
+          byProd.set(key, reg);
+          cogs += it.qty*it.unitCost;
+        })
+      })
+      const list = [...byProd.values()].filter(r=> !cat || r.cat===cat);
+      if(cat){
+        faturamento = list.reduce((s,r)=> s+r.receita, 0) + (incEnt? orders.reduce((s,o)=> s+o.deliveryFee,0):0);
+        cogs = list.reduce((s,r)=> s+r.cogs, 0);
+      }
+      const taxas = (faturamento)*( (d.settings.variableCostPercent||0)/100 );
+      const lucro = faturamento - cogs - taxas;
+      const ticket = pedidos? faturamento/pedidos : 0;
+
+      document.getElementById('rk-ped').querySelector('strong').textContent = pedidos;
+      document.getElementById('rk-fat').querySelector('strong').textContent = fmt(faturamento);
+      document.getElementById('rk-cogs').querySelector('strong').textContent = fmt(cogs);
+      document.getElementById('rk-taxas').querySelector('strong').textContent = fmt(taxas);
+      document.getElementById('rk-lucro').querySelector('strong').textContent = fmt(lucro);
+      document.getElementById('rk-ticket').querySelector('strong').textContent = fmt(ticket);
+
+      const tb = document.getElementById('tb-rep-prod'); tb.innerHTML='';
+      list.sort((a,b)=> b.receita-a.receita).forEach(r=>{
+        const tr = document.createElement('tr');
+        const luc = r.receita - r.cogs - (r.receita * ( (d.settings.variableCostPercent||0)/100 ));
+        tr.innerHTML = `<td>${r.name}</td><td>${r.cat}</td><td>${r.qtd}</td><td>${fmt(r.receita)}</td><td>${fmt(r.cogs)}</td><td><strong>${fmt(luc)}</strong></td>`;
+        tb.appendChild(tr);
+      })
+    }
+
+    // ---------- Exportação ----------
+    function exportCSV(){
+      const d = Data.get();
+      const rows = [["id","data","cliente","itens","subtotal","entrega","total","pagamento"]];
+      d.orders.forEach(o=>{
+        rows.push([
+          o.id,
+          new Date(o.datetimeISO).toLocaleString('pt-BR'),
+          '"'+o.customerName.replaceAll('"','""')+'"',
+          '"'+o.items.map(i=> `${i.qty}x ${i.name}`).join('; ').replaceAll('"','""')+'"',
+          o.subtotal,
+          o.deliveryFee,
+          o.total,
+          o.paymentMethod
+        ]);
+      })
+      const csv = rows.map(r=> r.join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'vendas.csv'; a.click();
+    }
+
+    // ---------- Config ----------
+    function renderConfig(){
+      const d = Data.get();
+      document.getElementById('cfg-entrega').value = d.settings.deliveryFeeDefault||0;
+      document.getElementById('cfg-last-order').value = d.settings.lastOrderNumber||0;
+    }
+    function salvarSequencia(){
+      const d = Data.get(); d.settings.lastOrderNumber = parseInt(document.getElementById('cfg-last-order').value||'0'); Data.commit(); toast('Sequência salva','ok'); document.getElementById('next-n').textContent = nextOrderNumber();
+    }
+    document.getElementById('cfg-entrega')?.addEventListener('input', ()=>{ const d=Data.get(); d.settings.deliveryFeeDefault = parseNum(document.getElementById('cfg-entrega').value); Data.commit(); })
+
+    function exportJSON(){
+      const blob = new Blob([JSON.stringify(Data.get(), null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'lanchonete-dados-v2.1.json'; a.click();
+    }
+    function importJSON(ev){
+      const file = ev.target.files[0]; if(!file) return;
+      const reader = new FileReader(); reader.onload = ()=>{
+        try{
+          const obj = JSON.parse(reader.result);
+          Data.cache = obj; Data.commit(); toast('Dados importados','ok');
+          renderDashboard(); renderFixos(); renderIngredientes(); renderProdutos(); renderClientes(); novoPedidoForm(); renderPedidosLista(); renderConfig();
+        }catch(e){ toast('Arquivo inválido','err'); }
+      }; reader.readAsText(file);
+    }
+    function seedDemo(){
+      const d = Data.get(); if(d.products.length||d.ingredients.length||d.orders.length){ if(!confirm('Isto adicionará exemplos ao que já existe. Continuar?')) return }
+      const ing = [
+        {name:'Pão de Hambúrguer', tipo:'un', custo:1.2},
+        {name:'Hambúrguer 100g', tipo:'g', custo:0.045},
+        {name:'Queijo', tipo:'g', custo:0.040},
+        {name:'Presunto', tipo:'g', custo:0.035},
+        {name:'Alface', tipo:'g', custo:0.008},
+        {name:'Tomate', tipo:'g', custo:0.010},
+        {name:'Refrigerante 350ml', tipo:'un', custo:3.00},
+        {name:'Massa Pastel (disco)', tipo:'un', custo:0.60},
+        {name:'Carne moída', tipo:'g', custo:0.030},
+        {name:'Queijo ralado', tipo:'g', custo:0.050}
+      ].map(x=> ({id:uid(), ...x}));
+      d.ingredients.push(...ing);
+      const id = (n)=> ing.find(i=> i.name===n).id;
+      const prods = [
+        {name:'X-Salada', category:'lanche', comp:[{ingId:id('Pão de Hambúrguer'), qtd:2},{ingId:id('Hambúrguer 100g'), qtd:100},{ingId:id('Queijo'), qtd:40},{ingId:id('Alface'), qtd:15},{ingId:id('Tomate'), qtd:20}], outros:1.0, margem:60},
+        {name:'Pastel de Carne', category:'pastel', comp:[{ingId:id('Massa Pastel (disco)'), qtd:1},{ingId:id('Carne moída'), qtd:120},{ingId:id('Queijo ralado'), qtd:20}], outros:0.6, margem:65},
+        {name:'Refrigerante Lata 350ml', category:'bebida', comp:[{ingId:id('Refrigerante 350ml'), qtd:1}], outros:0.5, margem:50}
+      ];
+      prods.forEach(p=>{
+        const compCost = p.comp.reduce((s,c)=> s + d.ingredients.find(i=>i.id===c.ingId).custo*c.qtd, 0);
+        const cost = compCost + p.outros; const price = cost*(1+p.margem/100);
+        d.products.push({id:uid(), name:p.name, category:p.category, composition:p.comp, extraCost:p.outros, margin:p.margem, cost, price, priceManual:null});
+      })
+      const cs = [{name:'João Silva'},{name:'Maria Souza'},{name:'Carlos Lima'}].map(c=> ({id:uid(), name:c.name, phone:'', address:'', notes:'', ja:true}));
+      d.customers.push(...cs);
+      d.settings.deliveryFeeDefault = 5;
+      d.settings.variableCostPercent = 3;
+      const p1 = d.products[0], p2 = d.products[1], p3 = d.products[2];
+      d.orders.push({id:1, datetimeISO:new Date(Date.now()-86400000).toISOString(), customerId:cs[0].id, customerName:cs[0].name, items:[{productId:p1.id,name:p1.name,qty:2,unitPrice:parseFloat((p1.price).toFixed(2)), unitCost:p1.cost}], subtotal:2*p1.price, deliveryFee:5, total:2*p1.price+5, paymentMethod:'PIX', observations:''});
+      d.orders.push({id:2, datetimeISO:todayISO(), customerId:cs[1].id, customerName:cs[1].name, items:[{productId:p2.id,name:p2.name,qty:1,unitPrice:parseFloat((p2.price).toFixed(2)), unitCost:p2.cost},{productId:p3.id,name:p3.name,qty:2,unitPrice:parseFloat((p3.price).toFixed(2)), unitCost:p3.cost}], subtotal:p2.price+2*p3.price, deliveryFee:5, total:p2.price+2*p3.price+5, paymentMethod:'Dinheiro', observations:'Sem cebola'});
+      d.settings.lastOrderNumber = 2;
+      Data.commit();
+      toast('Dados de exemplo inseridos','ok');
+      renderDashboard(); renderIngredientes(); renderProdutos(); renderClientes(); novoPedidoForm(); renderPedidosLista(); renderConfig();
+    }
+    function resetAll(){ if(!confirm('Apagar TODOS os dados?')) return; localStorage.removeItem(LS_KEY); Data.cache=null; location.reload(); }
+
+    // ---------- Helpers ----------
+    ['prod-outros','prod-margem'].forEach(id=> document.getElementById(id)?.addEventListener('input', calcularProduto));
+    document.getElementById('comp-list').addEventListener('input', (e)=>{ if(e.target.classList.contains('comp-qtd')|| e.target.classList.contains('comp-ing')) calcularProduto(); })
+
+    // ---------- Inicialização ----------
+    document.getElementById('year').textContent = new Date().getFullYear();
+    buildNav();
+    onTipoChange();
+    bindIngSaveDefault();
+    renderDashboard();
+    renderIngredientes();
+    renderProdutos();
+    renderClientes();
+    novoPedidoForm();
+    defaultRelatorioDatas();
+    renderConfig();
+    addCompRow();
+    checkAuth();
+  </script>
+</body>
+</html>
